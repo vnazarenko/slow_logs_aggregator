@@ -24,7 +24,7 @@ mk-query-digest --limit=30 --type=${LogType} $LogFile > $AggFile
 #
 ##archive slow logs
 ArchFile=${ArchDir}slow-queries-$(date +%F_%H-%M-%S).log.tar.gz
-tar czPf $ArchFile -C $DIR $LogFIleName
+tar czPf $ArchFile $LogFile
 #
 Line=$(grep -n 'Query 21:' $AggFile|awk -F: '{print $1}')
 
@@ -37,8 +37,8 @@ else
 fi
 
 ##rm $LogFile
-#rm $AggFile
-#rm $ResultLog
+rm $AggFile
+rm $ResultLog
 
 # Rotate slow logs. Will move them into the backup table slow_log_backup. If
 # that table exists it's overwritten with the primary slow log.
