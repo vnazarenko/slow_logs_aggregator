@@ -16,6 +16,7 @@ fi
 if [ "${RDS}" == "1" ]; then
   MysqlConfig=${DIR}/mysql_db.cnf
   GetSript=${DIR}/get_slow_queries_log.py
+  LogFile=${DIR}/${LogFIleName}
   python $GetSript $MysqlConfig > $LogFile
 fi
 
