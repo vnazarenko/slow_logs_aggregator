@@ -28,11 +28,13 @@ echo "creating aggregated log"
 mk-query-digest --limit=30 --type=${LogType} $LogFile > $AggFile
 #
 ##archive slow logs
+echo "archive aggregated log"
 ArchFile=${ArchDir}slow-queries-aggrerated-$(date +%F_%H-%M-%S).log.tar.gz
 tar czPf $ArchFile $AggFile
 #
 Line=$(grep -n 'Query 21:' $AggFile|awk -F: '{print $1}')
 
+echo "sending report"
 if [[ -z "$Line" ]]; then
   echo $(ruby $SendScript $AggFile 2>&1)
 else
@@ -42,6 +44,7 @@ else
 fi
 
 ##rm $LogFile
+echo "clearing temporary files"
 rm $AggFile
 rm $ResultLog
 
