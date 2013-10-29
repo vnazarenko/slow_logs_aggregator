@@ -1,7 +1,9 @@
 #!/bin/bash
+echo "initializing"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-LogFIleName=postgresql-$(date -v-1d +%F_000000).log
-LogFile=/Users/viktornazarenko/code/slow_logs_aggregator/${LogFIleName}
+DB_TYPE=mysql
+LogFIleName=mysql-slow.log
+LogFile=/var/log/mysql/${LogFIleName}
 AggFile=${DIR}/slow_query.log.aggrerated
 ArchDir=${DIR}/archive/
 ResultLog=${DIR}/result.log
@@ -14,6 +16,7 @@ fi
 
 # IF RDS we need to get slow log data
 if [ "${RDS}" == "1" ]; then
+  echo "gathering data from RDS"
   MysqlConfig=${DIR}/mysql_db.cnf
   GetSript=${DIR}/get_slow_queries_log.py
   LogFile=${DIR}/${LogFIleName}
@@ -21,11 +24,12 @@ if [ "${RDS}" == "1" ]; then
 fi
 
 #aggregate slow log
+echo "creating aggregated log"
 mk-query-digest --limit=30 --type=${LogType} $LogFile > $AggFile
 #
 ##archive slow logs
-ArchFile=${ArchDir}slow-queries-$(date +%F_%H-%M-%S).log.tar.gz
-tar czPf $ArchFile $LogFile
+ArchFile=${ArchDir}slow-queries-aggrerated-$(date +%F_%H-%M-%S).log.tar.gz
+tar czPf $ArchFile $AggFile
 #
 Line=$(grep -n 'Query 21:' $AggFile|awk -F: '{print $1}')
 
