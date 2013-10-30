@@ -9,7 +9,7 @@ ArchDir=${DIR}/archive/
 ResultLog=${DIR}/result.log
 SendScript=${DIR}/send_report.rb
 if [ "${DB_TYPE}" == "mysql" ]; then
-  LogType="genlog"
+  LogType="slowlog"
 else
   LogType="pglog"
 fi
@@ -25,7 +25,7 @@ fi
 
 #aggregate slow log
 echo "creating aggregated log"
-mk-query-digest --limit=30 --type=${LogType} $LogFile > $AggFile
+mk-query-digest --limit=30 --type=${LogType} --filter '$event->{bytes} < 512_576' $LogFile > $AggFile
 #
 ##archive slow logs
 echo "archive aggregated log"
@@ -41,12 +41,12 @@ else
   Line=$(expr $Line - 1)
   head -$Line $AggFile > $ResultLog
   echo $(ruby $SendScript $ResultLog 2>&1)
+
+  rm $ResultLog
 fi
 
 ##rm $LogFile
-echo "clearing temporary files"
 rm $AggFile
-rm $ResultLog
 
 # Rotate slow logs. Will move them into the backup table slow_log_backup. If
 # that table exists it's overwritten with the primary slow log.
