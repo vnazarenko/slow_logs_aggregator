@@ -26,24 +26,14 @@ fi
 #aggregate slow log
 echo "creating aggregated log"
 mk-query-digest --limit=30 --type=${LogType} --filter '$event->{bytes} < 512_576' $LogFile > $AggFile
+# you can use filter with some other params
+#mk-query-digest --limit=30 --type=${LogType} --filter '!($event->{fingerprint} =~ m/^insert/i)' $LogFile > $AggFile
 #
 ##archive slow logs
 echo "archive aggregated log"
 ArchFile=${ArchDir}slow-queries-aggrerated-$(date +%F_%H-%M-%S).log.tar.gz
 tar czPf $ArchFile $AggFile
 #
-Line=$(grep -n 'Query 21:' $AggFile|awk -F: '{print $1}')
-
-echo "sending report"
-if [[ -z "$Line" ]]; then
-  echo $(ruby $SendScript $AggFile 2>&1)
-else
-  Line=$(expr $Line - 1)
-  head -$Line $AggFile > $ResultLog
-  echo $(ruby $SendScript $ResultLog 2>&1)
-
-  rm $ResultLog
-fi
 
 ##rm $LogFile
 rm $AggFile
